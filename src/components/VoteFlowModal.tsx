@@ -95,6 +95,9 @@ const stepTransition = {
 };
 
 const STEPPER_ORDER = ["amount", "generating", "qrcode", "confirming", "confirmed"] as const;
+const CAN_SIMULATE_PIX =
+  process.env.NEXT_PUBLIC_ENABLE_PIX_SIMULATION === "true" ||
+  process.env.NODE_ENV !== "production";
 
 function StepAmount({ candidate }: { candidate: CandidateId }) {
   const { amountCents, setAmountCents, proceedWithAmount, close } = useVoteFlow();
@@ -337,14 +340,16 @@ function StepQRCode({
         <span className="font-semibold text-slate-500">{brl}</span>
       </p>
 
-      <button
-        type="button"
-        onClick={simulatePay}
-        disabled={simulating || !gatewayTxId}
-        className="mt-2 rounded-xl border border-dashed border-slate-300 px-5 py-2.5 text-xs font-bold text-slate-400 transition-colors hover:border-emerald-400 hover:text-emerald-600 active:scale-95 disabled:opacity-50"
-      >
-        {simulating ? "Confirmando..." : "Simular pagamento (mock)"}
-      </button>
+      {CAN_SIMULATE_PIX && (
+        <button
+          type="button"
+          onClick={simulatePay}
+          disabled={simulating || !gatewayTxId}
+          className="mt-2 rounded-xl border border-dashed border-slate-300 px-5 py-2.5 text-xs font-bold text-slate-400 transition-colors hover:border-emerald-400 hover:text-emerald-600 active:scale-95 disabled:opacity-50"
+        >
+          {simulating ? "Confirmando..." : "Simular pagamento (mock)"}
+        </button>
+      )}
     </motion.div>
   );
 }

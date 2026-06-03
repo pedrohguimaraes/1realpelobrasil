@@ -1,4 +1,4 @@
--- Candidatos + stats iniciais (ajuste copy se quiser)
+-- Candidatos iniciais (ajuste copy se quiser)
 
 INSERT INTO candidates (id, name, photo_path, color_class, ring_class, min_cents, amount_presets, provocation, sort_order)
 VALUES
@@ -44,10 +44,3 @@ ON CONFLICT (id) DO UPDATE SET
   amount_presets = EXCLUDED.amount_presets,
   provocation = EXCLUDED.provocation,
   sort_order = EXCLUDED.sort_order;
-
-INSERT INTO stats_cache (candidate_id, total_votes, total_cents, updated_at)
-VALUES
-  ('flavio', 5610, 561000, now()),
-  ('lula', 5530, 553000, now()),
-  ('isentao', 1200, 60000, now())
-ON CONFLICT (candidate_id) DO NOTHING;

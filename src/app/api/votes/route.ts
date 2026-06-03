@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -10,7 +11,7 @@ import {
 } from "@/lib/api-security";
 import { getDb } from "@/lib/db";
 import { candidates, votes } from "@/lib/db/schema";
-import { buildMockPixPayload } from "@/lib/pix-mock";
+import { createPixCharge } from "@/lib/pix-gateway";
 
 const postBody = z.object({
   candidateId: z.enum(["flavio", "lula", "isentao"]),
@@ -62,12 +63,19 @@ export async function POST(request: Request) {
       );
     }
 
+    const voteId = randomUUID();
     const { gatewayTxId, pixCopiaCola, pixQrcodeBase64 } =
-      await buildMockPixPayload(amountCents);
+      await createPixCharge({
+        voteId,
+        candidateId,
+        candidateName: cand.name,
+        amountCents,
+      });
 
     const [row] = await db
       .insert(votes)
       .values({
+        id: voteId,
         candidateId,
         amountCents,
         status: "pending",

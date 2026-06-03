@@ -6,7 +6,7 @@ import {
   tooManyRequests,
 } from "@/lib/api-security";
 import { getDb } from "@/lib/db";
-import { statsCache, votes } from "@/lib/db/schema";
+import { votes } from "@/lib/db/schema";
 
 export async function GET(request: Request) {
   try {
@@ -18,19 +18,22 @@ export async function GET(request: Request) {
 
     const [agg] = await db
       .select({
-        totalVotes: sql<number>`coalesce(sum(${statsCache.totalVotes}), 0)::int`,
-        totalCents: sql<number>`coalesce(sum(${statsCache.totalCents}), 0)::int`,
-        updatedAt: sql<string>`max(${statsCache.updatedAt})::text`,
+        totalVotes: sql<number>`count(*)::int`,
+        totalCents: sql<number>`coalesce(sum(${votes.amountCents}), 0)::int`,
+        updatedAt: sql<string | null>`max(${votes.paidAt})::text`,
       })
-      .from(statsCache);
+      .from(votes)
+      .where(eq(votes.status, "paid"));
 
     const byCandidate = await db
       .select({
-        candidateId: statsCache.candidateId,
-        votes: statsCache.totalVotes,
-        cents: statsCache.totalCents,
+        candidateId: votes.candidateId,
+        votes: sql<number>`count(*)::int`,
+        cents: sql<number>`coalesce(sum(${votes.amountCents}), 0)::int`,
       })
-      .from(statsCache);
+      .from(votes)
+      .where(eq(votes.status, "paid"))
+      .groupBy(votes.candidateId);
 
     const candidatesMap: Record<string, { votes: number; cents: number }> = {};
     for (const row of byCandidate) {

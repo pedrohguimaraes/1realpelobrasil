@@ -10,10 +10,10 @@ import type { ApiCandidate, CandidateId } from "@/lib/types/api";
 
 /** Fallback visual quando a API não responde (sem DATABASE_URL, etc.). */
 const FALLBACK = {
-  totalVotes: 12_340,
-  flavio: { votes: 5_610, pct: 45.4 },
-  isentao: { votes: 1_200, pct: 9.7 },
-  lula: { votes: 5_530, pct: 44.9 },
+  totalVotes: 0,
+  flavio: { votes: 0, pct: 0 },
+  isentao: { votes: 0, pct: 0 },
+  lula: { votes: 0, pct: 0 },
 } as const;
 
 function fmtVotes(n: number) {
@@ -23,6 +23,10 @@ function fmtVotes(n: number) {
 function pctPart(votes: number, total: number): number {
   if (total <= 0) return 0;
   return Math.round((votes / total) * 1000) / 10;
+}
+
+function barWidth(pct: number, votes: number, minWidth: number): string {
+  return `${votes > 0 ? Math.max(pct, minWidth) : 0}%`;
 }
 
 function pickCandidate(
@@ -179,7 +183,7 @@ export function HeroSection() {
               <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                 <div
                   className="bar-shimmer h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.4)]"
-                  style={{ width: `${Math.max(row.flavio.pct, 3)}%` }}
+                  style={{ width: barWidth(row.flavio.pct, row.flavio.votes, 3) }}
                 />
               </div>
               <p className="text-center text-[9px] font-semibold text-blue-500/80 leading-tight">
@@ -207,7 +211,7 @@ export function HeroSection() {
               <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                 <div
                   className="bar-shimmer h-full rounded-full bg-gradient-to-r from-red-500 to-red-400 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
-                  style={{ width: `${Math.max(row.lula.pct, 3)}%` }}
+                  style={{ width: barWidth(row.lula.pct, row.lula.votes, 3) }}
                 />
               </div>
               <p className="text-center text-[9px] font-semibold text-red-500/80 leading-tight">
@@ -280,7 +284,7 @@ export function HeroSection() {
                         <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
                           <div
                             className="bar-shimmer h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.3)]"
-                            style={{ width: `${Math.max(row.isentao.pct, 8)}%` }}
+                            style={{ width: barWidth(row.isentao.pct, row.isentao.votes, 8) }}
                           />
                         </div>
 
@@ -316,7 +320,7 @@ export function HeroSection() {
             )}
             {apiDown && (
               <span className="block text-[9px] text-amber-600 font-semibold mt-0.5">
-                (dados de exemplo — API indisponível)
+                (placar indisponível)
               </span>
             )}
             {loading && (

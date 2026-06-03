@@ -22,8 +22,8 @@ const TIMELINE_STEPS = [
   "Entrega documentada",
 ];
 
-const FALLBACK_TOTAL_CENTS = 1_234_000;
-const FALLBACK_TODAY_CENTS = 23_000;
+const FALLBACK_TOTAL_CENTS = 0;
+const FALLBACK_TODAY_CENTS = 0;
 
 function formatBrlFromCents(cents: number) {
   const reais = cents / 100;
@@ -103,7 +103,7 @@ export function CharitySection() {
               </div>
               {apiDown && (
                 <span className="text-[10px] font-medium text-amber-600">
-                  Valores de exemplo — API indisponível
+                  API indisponível
                 </span>
               )}
             </div>

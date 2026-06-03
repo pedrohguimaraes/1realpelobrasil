@@ -7,7 +7,12 @@ import {
   tooManyRequests,
 } from "@/lib/api-security";
 import { getDb } from "@/lib/db";
+import { markVotePaidById } from "@/lib/db/vote-status";
 import { votes } from "@/lib/db/schema";
+import {
+  checkAbacatePayPixStatus,
+  isAbacatePayGateway,
+} from "@/lib/pix-gateway";
 
 const uuidParam = z.string().uuid();
 
@@ -44,13 +49,33 @@ export async function GET(
       return NextResponse.json({ error: "Voto não encontrado" }, { status: 404 });
     }
 
+    let status = row.status;
+    let paidAt = row.paidAt;
+
+    if (status !== "paid" && isAbacatePayGateway()) {
+      try {
+        const gatewayStatus = await checkAbacatePayPixStatus(row.gatewayTxId);
+        if (gatewayStatus === "paid") {
+          const paid = await markVotePaidById(row.id);
+          if (paid.found) {
+            status = paid.vote.status;
+            paidAt = paid.vote.paidAt;
+          }
+        } else if (gatewayStatus) {
+          status = gatewayStatus;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     return NextResponse.json({
       id: row.id,
-      status: row.status,
+      status,
       candidateId: row.candidateId,
       amountCents: row.amountCents,
       gatewayTxId: row.gatewayTxId,
-      paidAt: row.paidAt?.toISOString() ?? null,
+      paidAt: paidAt?.toISOString() ?? null,
     });
   } catch (e) {
     console.error(e);
