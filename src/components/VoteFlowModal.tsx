@@ -99,7 +99,13 @@ const CAN_SIMULATE_PIX =
   process.env.NEXT_PUBLIC_ENABLE_PIX_SIMULATION === "true" ||
   process.env.NODE_ENV !== "production";
 
-function StepAmount({ candidate }: { candidate: CandidateId }) {
+function StepAmount({
+  candidate,
+  error,
+}: {
+  candidate: CandidateId;
+  error: string | null;
+}) {
   const { amountCents, setAmountCents, proceedWithAmount, close } = useVoteFlow();
   const { meta, minCents, presets } = useCandidateUi(candidate);
 
@@ -141,6 +147,12 @@ function StepAmount({ candidate }: { candidate: CandidateId }) {
             )}
           </p>
         </div>
+
+        {error && (
+          <div className="w-full rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-center text-xs font-semibold text-red-600">
+            {error}
+          </div>
+        )}
 
         <div className="flex w-full flex-wrap justify-center gap-2">
           {presets.map((c) => (
@@ -221,7 +233,7 @@ function StepGenerating({
         <Image src={meta.photo} alt={meta.name} fill className="object-cover" sizes="80px" />
       </div>
       <div className="text-center">
-        <p className="text-lg font-black text-slate-800">Gerando QR Code...</p>
+        <p className="text-lg font-black text-slate-800">Gerando Pix...</p>
         <p className="mt-1 text-sm text-slate-500">
           {formatBRL(amountCents)} para{" "}
           <span className={`font-bold ${meta.color}`}>{meta.name}</span>
@@ -448,6 +460,7 @@ export function VoteFlowModal() {
     setVotePayment,
     votePayment,
   } = useVoteFlow();
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const isOpen = step !== "idle";
 
   const stepperIndex = useMemo(() => {
@@ -456,6 +469,7 @@ export function VoteFlowModal() {
 
   useEffect(() => {
     if (step !== "generating" || !candidate) return;
+    setGenerationError(null);
     const ac = new AbortController();
     (async () => {
       try {
@@ -469,8 +483,9 @@ export function VoteFlowModal() {
           signal: ac.signal,
         });
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
+          const err = (await res.json().catch(() => ({}))) as { error?: string };
           console.error(err);
+          setGenerationError(err.error ?? "Não foi possível gerar o Pix agora.");
           setStep("amount");
           return;
         }
@@ -490,6 +505,7 @@ export function VoteFlowModal() {
         setStep("qrcode");
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
+        setGenerationError("Não foi possível gerar o Pix agora.");
         setStep("amount");
       }
     })();
@@ -529,6 +545,7 @@ export function VoteFlowModal() {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
+      setGenerationError(null);
     }
     return () => {
       document.body.style.overflow = "";
@@ -581,7 +598,9 @@ export function VoteFlowModal() {
           </div>
 
           <AnimatePresence mode="wait">
-            {step === "amount" && <StepAmount candidate={candidate} />}
+            {step === "amount" && (
+              <StepAmount candidate={candidate} error={generationError} />
+            )}
             {step === "generating" && (
               <StepGenerating candidate={candidate} amountCents={amountCents} />
             )}

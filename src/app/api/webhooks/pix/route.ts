@@ -136,10 +136,11 @@ export async function POST(request: Request) {
 
     await recordWebhookEvent(webhook.gatewayTxId, json);
 
-    if (
-      webhook.event !== "transparent.completed" ||
-      !isAbacatePayPaidStatus(webhook.status)
-    ) {
+    const isPaidEvent =
+      webhook.event === "transparent.completed" ||
+      webhook.event === "billing.paid";
+
+    if (!isPaidEvent || !isAbacatePayPaidStatus(webhook.status)) {
       return NextResponse.json({ ok: true, ignored: true });
     }
 

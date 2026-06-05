@@ -3,12 +3,16 @@ import type { ApiCandidate, ApiStats } from "@/lib/types/api";
 
 async function fetcher<T>(url: string): Promise<T> {
   const res = await fetch(url);
+  const text = await res.text();
   if (!res.ok) {
     const err = new Error(`HTTP ${res.status}`) as Error & { status?: number };
     err.status = res.status;
     throw err;
   }
-  return res.json() as Promise<T>;
+  if (!text) {
+    throw new Error(`Resposta vazia de ${url}`);
+  }
+  return JSON.parse(text) as T;
 }
 
 export function useCandidates() {

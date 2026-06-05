@@ -102,8 +102,12 @@ export async function POST(request: Request) {
     });
   } catch (e) {
     console.error(e);
+    const message =
+      e instanceof Error && e.message.includes("ABACATEPAY_API_KEY")
+        ? "Configure ABACATEPAY_API_KEY no ambiente para gerar Pix pela AbacatePay."
+        : "Erro ao criar Pix.";
     return NextResponse.json(
-      { error: "Erro ao criar voto." },
+      { error: message },
       { status: 503 }
     );
   }
