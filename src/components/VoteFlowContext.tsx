@@ -20,12 +20,12 @@ export type VotePayment = {
 };
 
 /** Fallback se a API de candidatos ainda não carregou. */
-export function minCentsFor(candidate: CandidateId): number {
-  return candidate === "isentao" ? 50 : 100;
+export function minCentsFor(): number {
+  return 100;
 }
 
-export function defaultCentsFor(candidate: CandidateId): number {
-  return minCentsFor(candidate);
+export function defaultCentsFor(): number {
+  return minCentsFor();
 }
 
 interface VoteFlowState {
@@ -65,13 +65,13 @@ export function VoteFlowProvider({ children }: { children: ReactNode }) {
   const openVoteFlow = useCallback((c: CandidateId) => {
     clearVotePayment();
     setCandidate(c);
-    setAmountCentsState(defaultCentsFor(c));
+    setAmountCentsState(defaultCentsFor());
     setStep("amount");
   }, [clearVotePayment]);
 
   const confirmAmountAndContinue = useCallback(() => {
     if (!candidate) return;
-    const min = minCentsFor(candidate);
+    const min = minCentsFor();
     const next = Math.max(min, amountCents);
     setAmountCentsState(next);
     setStep("generating");
@@ -79,7 +79,7 @@ export function VoteFlowProvider({ children }: { children: ReactNode }) {
 
   const proceedWithAmount = useCallback((cents: number, minCentsOverride?: number) => {
     if (!candidate) return;
-    const min = minCentsOverride ?? minCentsFor(candidate);
+    const min = minCentsOverride ?? minCentsFor();
     const next = Math.max(min, Math.round(cents));
     setAmountCentsState(next);
     setStep("generating");

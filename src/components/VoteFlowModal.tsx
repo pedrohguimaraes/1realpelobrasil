@@ -43,7 +43,7 @@ const FALLBACK_META: Record<
 };
 
 const PRESETS_POLITICO = [100, 200, 500, 1000, 2000, 5000];
-const PRESETS_ISENTAO = [50, 100, 200, 500, 1000, 2000, 5000];
+const PRESETS_ISENTAO = [100, 200, 500, 1000, 2000, 5000];
 
 function parseBrazilianMoney(raw: string): number {
   const t = raw.trim().replace(/\s/g, "");
@@ -77,7 +77,7 @@ function useCandidateUi(candidate: CandidateId) {
         ring: row.ringClass,
       }
     : FALLBACK_META[candidate];
-  const minCents = row?.minCents ?? minCentsFor(candidate);
+  const minCents = row?.minCents ?? minCentsFor();
   const presets =
     row?.amountPresets?.length ?
       row.amountPresets

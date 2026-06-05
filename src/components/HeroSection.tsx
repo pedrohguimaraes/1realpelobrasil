@@ -239,12 +239,26 @@ export function HeroSection() {
                   transition={{ duration: 0.25 }}
                   type="button"
                   onClick={() => setShowIsentao(true)}
-                  className="w-full rounded-xl border-2 border-amber-500 bg-white py-3 text-sm font-black text-amber-700 shadow-md shadow-amber-500/15 transition-transform active:scale-95"
+                  className="w-full rounded-xl border-2 border-amber-500 bg-white px-3 py-3 text-sm font-black text-amber-700 shadow-md shadow-amber-500/15 transition-transform active:scale-95"
                 >
                   <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500 block mb-0.5">
                     Terceira via — vote também
                   </span>
                   Os dois erram, mas eu ajudo
+                  <span className="mt-2 flex items-center justify-center gap-2">
+                    <span className="text-[10px] font-bold text-amber-700">
+                      {fmtVotes(row.isentao.votes)} votos
+                    </span>
+                    <span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[8px] font-black text-white">
+                      {row.isentao.pct}%
+                    </span>
+                  </span>
+                  <span className="mt-1 block h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                    <span
+                      className="bar-shimmer block h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.3)]"
+                      style={{ width: barWidth(row.isentao.pct, row.isentao.votes, 8) }}
+                    />
+                  </span>
                 </motion.button>
               ) : (
                 <motion.div
@@ -293,7 +307,7 @@ export function HeroSection() {
                           onClick={() => openVoteFlow("isentao")}
                           className="mt-2.5 w-full rounded-xl border-2 border-amber-500 bg-white py-2.5 text-xs font-black text-amber-700 shadow-md shadow-amber-500/15 transition-transform active:scale-95 sm:py-3 sm:text-sm"
                         >
-                          Desde R$0,50
+                          Desde R$1
                         </button>
                       </div>
                     </div>
