@@ -8,9 +8,6 @@ import {
   type PixPaymentStatus,
 } from "@/lib/payments/pix";
 
-const DEFAULT_ABACATEPAY_WEBHOOK_HMAC_KEY =
-  "t9dXRhHHo3yDEj5pVDYz0frf7q6bMKyMRmxxCPIPp3RCplBfXRxqlC6ZpiWmOqj4L63qEaeUOtrCI8P0VMUgo6iIga2ri9ogaHFs0WIIywSMg0q7RmBfybe1E5XJcfC4IW3alNqym0tXoAKkzvfEjZxV6bE0oG2zJrNNYmUCKZyV0KZ3JS8Votf9EAWWYdiDkMkpbMdPggfh1EqHlVkMiTady6jOR3hyzGEHrIz2Ret0xHKMbiqkr9HS1JhNHDX9";
-
 export type PixGateway = PixPaymentProvider;
 export type GatewayPaymentStatus = PixPaymentStatus;
 export type CreatePixChargeInput = CreatePixPaymentInput;
@@ -92,8 +89,16 @@ export function shouldRequireAbacatePayWebhookSignature(): boolean {
   );
 }
 
+// Chave HMAC PÚBLICA da AbacatePay (publicada na doc oficial, igual para todos
+// os comerciantes). Não é segredo: serve só para integridade do payload, não
+// autentica o remetente — quem autentica é o ABACATEPAY_WEBHOOK_SECRET na query
+// string. Mantida como fallback; sobrescreva por env se a AbacatePay rotacionar.
+// https://docs.abacatepay.com/pages/webhooks
+const ABACATEPAY_PUBLIC_HMAC_KEY =
+  "t9dXRhHHo3yDEj5pVDYz0frf7q6bMKyMRmxxCPIPp3RCplBfXRxqlC6ZpiWmOqj4L63qEaeUOtrCI8P0VMUgo6iIga2ri9ogaHFs0WIIywSMg0q7RmBfybe1E5XJcfC4IW3alNqym0tXoAKkzvfEjZxV6bE0oG2zJrNNYmUCKZyV0KZ3JS8Votf9EAWWYdiDkMkpbMdPggfh1EqHlVkMiTady6jOR3hyzGEHrIz2Ret0xHKMbiqkr9HS1JhNHDX9";
+
 function getAbacatePayWebhookHmacKey(): string {
-  return readOptionalEnv("ABACATEPAY_WEBHOOK_HMAC_KEY") ?? DEFAULT_ABACATEPAY_WEBHOOK_HMAC_KEY;
+  return readOptionalEnv("ABACATEPAY_WEBHOOK_HMAC_KEY") ?? ABACATEPAY_PUBLIC_HMAC_KEY;
 }
 
 export function isAbacatePayPaidStatus(status: string | null): boolean {

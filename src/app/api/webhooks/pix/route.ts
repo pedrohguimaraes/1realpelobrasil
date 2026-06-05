@@ -43,6 +43,16 @@ function receivedWebhookSecret(request: Request): string | null {
   );
 }
 
+/**
+ * A rota de simulação (corpo { gatewayTxId }) só pode marcar votos como pagos
+ * sem pagamento real. Em produção fica desligada por padrão; só liga com a
+ * flag explícita — espelha o comportamento do botão no front.
+ */
+function isPixSimulationEnabled(): boolean {
+  if (!isProduction()) return true;
+  return process.env.NEXT_PUBLIC_ENABLE_PIX_SIMULATION?.trim() === "true";
+}
+
 function ensureWebhookSecret(request: Request): NextResponse | null {
   const secret = getAbacatePayWebhookSecret();
   if (isProduction() && !secret?.trim()) {
@@ -99,11 +109,17 @@ export async function POST(request: Request) {
 
     const mockPayload = bodySchema.safeParse(json);
     if (mockPayload.success) {
-      const { gatewayTxId } = mockPayload.data;
-      if (isProduction()) {
-        const secretError = ensureWebhookSecret(request);
-        if (secretError) return secretError;
+      if (!isPixSimulationEnabled()) {
+        return NextResponse.json(
+          { error: "Simulação de pagamento desativada." },
+          { status: 403 }
+        );
       }
+
+      const { gatewayTxId } = mockPayload.data;
+      // Exige segredo em qualquer ambiente quando ele estiver configurado.
+      const secretError = ensureWebhookSecret(request);
+      if (secretError) return secretError;
 
       await recordWebhookEvent(gatewayTxId, json);
 

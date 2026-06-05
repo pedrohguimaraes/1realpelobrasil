@@ -37,11 +37,20 @@ function pruneAndCheck(
 }
 
 /**
- * IP do cliente (proxy / Vercel / local). Usado só para rate limit best-effort.
+ * IP do cliente para rate limit. Só confie em headers que um proxy CONFIÁVEL
+ * preenche — caso contrário o cliente forja o header e ganha um bucket novo a
+ * cada request (bypass do rate limit).
+ *
+ * Na Vercel (planos não-Enterprise) o `x-forwarded-for` é sobrescrito pela
+ * plataforma e IPs externos não são repassados, então ele é confiável aqui.
+ * `cf-connecting-ip` é controlável pelo cliente quando o app NÃO está atrás do
+ * Cloudflare — por isso só é considerado se TRUST_CF_CONNECTING_IP=true.
  */
 export function getClientIp(request: Request): string {
-  const cf = request.headers.get("cf-connecting-ip");
-  if (cf?.trim()) return cf.trim();
+  if (process.env.TRUST_CF_CONNECTING_IP?.trim() === "true") {
+    const cf = request.headers.get("cf-connecting-ip");
+    if (cf?.trim()) return cf.trim();
+  }
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
     const first = forwarded.split(",")[0]?.trim();
